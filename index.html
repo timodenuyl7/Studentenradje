@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Namen invoeren</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>Studentenradje</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="script.js"></script>
 </head>
 <body>
-<h1>Namen invoeren</h1>
-<div id="nameContainer"></div>
-<button id="add">Voeg naam toe</button>
-<button id="next">Volgende</button>
-<script src="script.js"></script>
-<script>
-initNamePage();
-</script>
+<div class="container">
+    <h1>Studentenradje</h1>
+    <p class="uitleg">
+        Voeg namen toe, stel het rad in, en draai om willekeurig een student te kiezen.
+    </p>
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <button id="spinBtn">Draai het rad</button>
+    <div id="result" class="result"></div>
+    <a class="settings-link" href="settings.html">Ga naar instellingen</a>
+</div>
 </body>
 </html>

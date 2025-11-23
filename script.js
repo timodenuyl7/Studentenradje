@@ -1,69 +1,93 @@
-function initNamePage(){
-  const c=document.getElementById('nameContainer');
-  let names=[];
-  function render(){
-    c.innerHTML='';
-    names.forEach((n,i)=>{
-      const inp=document.createElement('input');
-      inp.value=n;
-      inp.oninput=e=>{names[i]=e.target.value};
-      c.appendChild(inp);
-      c.appendChild(document.createElement('br'));
-    });
-  }
-  document.getElementById('add').onclick=function(){
-    if(names.length<10){names.push('');render();}
-  };
-  document.getElementById('next').onclick=function(){
-    localStorage.setItem('names',JSON.stringify(names.filter(n=>n.trim().length>0)));
-    location.href='weights.html';
-  };
-  names=['',''];
-  render();
-}
+// Load names from localStorage
+let names = JSON.parse(localStorage.getItem('names') || '[]');
 
-function initWeightsPage(){
-  const names=JSON.parse(localStorage.getItem('names')||'[]');
-  const c=document.getElementById('weightsContainer');
-  let weights=new Array(names.length).fill(100);
-  names.forEach((n,i)=>{
-    const div=document.createElement('div');
-    div.innerHTML=n+': ';
-    const r=document.createElement('input');
-    r.type='range';r.min=0;r.max=100;r.value=100;
-    r.oninput=e=>{weights[i]=parseInt(e.target.value)};
-    div.appendChild(r);
-    c.appendChild(div);
-  });
-  document.getElementById('next').onclick=function(){
-    localStorage.setItem('weights',JSON.stringify(weights));
-    location.href='wheel.html';
-  };
-}
-
-function initWheelPage(){
-  const names=JSON.parse(localStorage.getItem('names')||'[]');
-  const weights=JSON.parse(localStorage.getItem('weights')||'[]');
-  const canvas=document.getElementById('wheel');
-  const ctx=canvas.getContext('2d');
-  const total=weights.reduce((a,b)=>a+b,0);
-  let angle=0;
-  names.forEach((n,i)=>{
-    const slice=2*Math.PI*(weights[i]/total);
-    ctx.beginPath();
-    ctx.moveTo(250,250);
-    ctx.arc(250,250,250,angle,angle+slice);
-    ctx.fillStyle=`hsl(${i*50},70%,60%)`;
-    ctx.fill();
-    angle+=slice;
-  });
-  document.getElementById('spin').onclick=function(){
-    const r=Math.random()*total;
-    let acc=0,win=0;
-    for(let i=0;i<weights.length;i++){
-      acc+=weights[i];
-      if(r<=acc){win=i;break;}
+// Add name (settings page)
+document.getElementById('addNameBtn')?.addEventListener('click', () => {
+    const input = document.getElementById('nameInput');
+    if (input.value.trim() !== '') {
+        names.push(input.value.trim());
+        localStorage.setItem('names', JSON.stringify(names));
+        renderList();
+        input.value = '';
     }
-    document.getElementById('winner').innerText='Gewonnen: '+names[win];
-  };
+});
+
+function renderList() {
+    const list = document.getElementById('nameList');
+    if (!list) return;
+    list.innerHTML = '';
+    names.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n;
+        list.appendChild(li);
+    });
 }
+renderList();
+
+// Wheel rendering
+const wheel = document.getElementById('wheel');
+const ctx = wheel?.getContext('2d');
+
+function drawWheel() {
+    if (!ctx || names.length === 0) return;
+    const radius = wheel.width/2;
+    const arc = (2*Math.PI) / names.length;
+    names.forEach((name, i) => {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = randomColor(i);
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, angle, angle + arc);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(angle + arc/2);
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.fillText(name, radius/2, 0);
+        ctx.restore();
+    });
+}
+
+function randomColor(i){
+    // deterministic random color
+    const r = (i*70)%255, g=(i*130)%255, b=(i*200)%255;
+    return `rgb(${r},${g},${b})`;
+}
+
+let rotation = 0;
+
+function spin() {
+    if (!ctx || names.length === 0) return;
+    const spinTime = 3000;
+    const finalRotation = rotation + Math.random()*2000 + 2000;
+    const start = performance.now();
+
+    function animate(t) {
+        const progress = Math.min((t - start)/spinTime, 1);
+        rotation = easeOut(progress) * finalRotation;
+        ctx.clearRect(0,0,wheel.width,wheel.height);
+        ctx.save();
+        ctx.translate(wheel.width/2, wheel.height/2);
+        ctx.rotate(rotation * Math.PI/180);
+        ctx.translate(-wheel.width/2, -wheel.height/2);
+        drawWheel();
+        ctx.restore();
+        if (progress < 1) requestAnimationFrame(animate);
+        else finishSpin();
+    }
+    requestAnimationFrame(animate);
+}
+
+function easeOut(x){ return 1 - Math.pow(1 - x, 3); }
+
+function finishSpin(){
+    const arc = 360 / names.length;
+    const index = Math.floor(((rotation % 360)+360)%360 / arc);
+    const winner = names[names.length - 1 - index];
+    document.getElementById('result').textContent = winner;
+}
+
+document.getElementById('spinBtn')?.addEventListener('click', spin);
+
+drawWheel();

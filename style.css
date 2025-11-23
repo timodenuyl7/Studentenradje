@@ -1,1 +1,37 @@
-body{font-family:sans-serif;padding:20px;}button{margin:10px;padding:10px;}
+body {
+    background: #111;
+    color: #eee;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+.container {
+    text-align: center;
+    max-width: 500px;
+}
+button {
+    background: #444;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    margin: 15px 0;
+    cursor: pointer;
+}
+button:hover { background: #666; }
+#result {
+    font-size: 2rem;
+    margin-top: 20px;
+}
+.settings-link {
+    display: block;
+    margin-top: 20px;
+    color: #66f;
+}
+.input-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#nameList { list-style: none; padding: 0; }
